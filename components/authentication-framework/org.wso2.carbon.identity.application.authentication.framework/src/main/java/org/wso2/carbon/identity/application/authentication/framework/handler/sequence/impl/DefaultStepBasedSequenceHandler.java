@@ -405,10 +405,14 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     locallyMappedUserRoles = getLocallyMappedUserRoles(sequenceConfig,
                             externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri);
 
+                    String multiAttributeSeparator = mappedAttrs.get(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+                    if (StringUtils.isBlank(multiAttributeSeparator)) {
+                        multiAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+                    }
                     if (idpRoleClaimUri != null && getServiceProviderMappedUserRoles(sequenceConfig,
-                            locallyMappedUserRoles) != null) {
+                            locallyMappedUserRoles, multiAttributeSeparator) != null) {
                         extAttibutesValueMap.put(idpRoleClaimUri, getServiceProviderMappedUserRoles(sequenceConfig,
-                                locallyMappedUserRoles));
+                                locallyMappedUserRoles, multiAttributeSeparator));
                     }
 
                     if (mappedAttrs == null || mappedAttrs.isEmpty()) {
@@ -482,11 +486,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         if (StringUtils.isBlank(multiAttributeSeparator)) {
                             multiAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
                         }
-
                         String[] roles = roleAttr.split(Pattern.quote(multiAttributeSeparator));
                         mappedAttrs.put(
                                 spRoleUri,
-                                getServiceProviderMappedUserRoles(sequenceConfig, Arrays.asList(roles)));
+                                getServiceProviderMappedUserRoles(sequenceConfig, Arrays.asList(roles), multiAttributeSeparator));
                     }
 
                     authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
@@ -551,7 +554,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
      * @return
      */
     protected String getServiceProviderMappedUserRoles(SequenceConfig sequenceConfig,
-                                                       List<String> locallyMappedUserRoles) throws FrameworkException {
+                                                       List<String> locallyMappedUserRoles,
+                                                       String multiAttributeSeparator) throws FrameworkException {
 
         if (locallyMappedUserRoles != null && !locallyMappedUserRoles.isEmpty()) {
 
@@ -569,17 +573,17 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             for (String role : locallyMappedUserRoles) {
                 if (roleMappingDefined) {
                     if (localToSpRoleMapping.containsKey(role)) {
-                        spMappedUserRoles.append(localToSpRoleMapping.get(role) + ",");
+                        spMappedUserRoles.append(localToSpRoleMapping.get(role) + multiAttributeSeparator);
                     } else {
-                        spMappedUserRoles.append(role + ",");
+                        spMappedUserRoles.append(role + multiAttributeSeparator);
                     }
                 } else {
-                    spMappedUserRoles.append(role + ",");
+                    spMappedUserRoles.append(role + multiAttributeSeparator);
                 }
             }
 
-            return spMappedUserRoles.length() > 0 ? spMappedUserRoles.toString().substring(0,
-                                                                                           spMappedUserRoles.length() - 1) : null;
+            return spMappedUserRoles.length() > 0 ? spMappedUserRoles.toString().
+                    substring(0, spMappedUserRoles.length() - multiAttributeSeparator.length()) : null;
         }
 
         return null;
