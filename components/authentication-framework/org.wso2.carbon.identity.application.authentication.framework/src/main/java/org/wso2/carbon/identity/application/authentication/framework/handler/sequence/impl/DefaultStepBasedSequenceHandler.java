@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
@@ -56,6 +57,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler {
 
@@ -476,11 +478,15 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                     if (StringUtils.isNotBlank(roleAttr)) {
 
-                        String[] roles = roleAttr.split(",");
+                        String multiAttributeSeparator = mappedAttrs.get(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+                        if (StringUtils.isBlank(multiAttributeSeparator)) {
+                            multiAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+                        }
+
+                        String[] roles = roleAttr.split(Pattern.quote(multiAttributeSeparator));
                         mappedAttrs.put(
                                 spRoleUri,
-                                getServiceProviderMappedUserRoles(sequenceConfig,
-                                        Arrays.asList(roles)));
+                                getServiceProviderMappedUserRoles(sequenceConfig, Arrays.asList(roles)));
                     }
 
                     authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
