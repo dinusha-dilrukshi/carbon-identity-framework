@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class DefaultClaimHandler implements ClaimHandler {
 
@@ -324,17 +325,17 @@ public class DefaultClaimHandler implements ClaimHandler {
             throws FrameworkException {
 
         Map<String, String> localToSpRoleMapping = applicationConfig.getRoleMappings();
+        List<String> spMappedRoles = new ArrayList<>();
 
         if (!MapUtils.isEmpty(localToSpRoleMapping)) {
             for (Map.Entry<String, String> roleMapping : localToSpRoleMapping.entrySet()) {
                 if (locallyMappedUserRoles.contains(roleMapping.getKey())) {
-                    locallyMappedUserRoles.remove(roleMapping.getKey());
-                    locallyMappedUserRoles.add(roleMapping.getValue());
+                    spMappedRoles.add(roleMapping.getValue());
                 }
             }
         }
 
-        return StringUtils.join(locallyMappedUserRoles, claimSeparator);
+        return StringUtils.join(spMappedRoles, claimSeparator);
     }
 
     /**
@@ -559,7 +560,8 @@ public class DefaultClaimHandler implements ClaimHandler {
                         claimSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
                     }
                     String roleClaim = entry.getValue();
-                    List<String> rolesList = new LinkedList<>(Arrays.asList(roleClaim.split(claimSeparator)));
+                    List<String> rolesList = new LinkedList<>(Arrays.asList(roleClaim.split(Pattern.quote
+                            (claimSeparator))));
                     roleClaim = getServiceProviderMappedUserRoles(appConfig, rolesList, claimSeparator);
                     entry.setValue(roleClaim);
                 }
